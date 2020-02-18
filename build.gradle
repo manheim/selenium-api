@@ -16,7 +16,7 @@ configurations {
 }
 
 dependencies {
-    provided 'org.seleniumhq.selenium:selenium-server:3.14.0'
+    provided 'org.seleniumhq.selenium:selenium-server:3.141.59'
     compile 'org.json:json:20080701'
     testCompile 'org.testng:testng:6.8.8'
 }
