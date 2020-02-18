@@ -36,5 +36,5 @@ jar {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.6'
-    distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip";
+    distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip";
 }
