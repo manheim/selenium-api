@@ -33,6 +33,25 @@ A call to http://localhost:4444/grid/admin/Console will return a full status rep
 
 The call `http://localhost:4444/grid/admin/Console/requests` will just return a list of the pending requests of the connected nodes.
 
+## ForceDeregister
+
+The servlet `com.xing.qa.selenium.grid.hub.ForceDeregister` implements an endpoint to forcibly deregister a given node from the Hub's GridRegistry. This immediately cleans up an test sessions that were using the node and then removes it from the Grid.
+
+This can be used as a workaround for https://github.com/SeleniumHQ/selenium/issues/8055 where when a node disappears from the network (such as an EC2 Instance in an Auto-Scaling Group being terminated), the Console and hub status endpoint hang for seconds or minutes while attempting to contact the node.
+
+### Usage
+
+Include the servlet in the ``-servlets`` parameter as shown above.
+
+This will add a new URL endpoint to the hub, ``http://HUB_ADDRESS:HUB_PORT/grid/admin/ForceDeregister``
+
+Supported HTTP methods: GET
+Returned content type: `text/plain` (use HTTP status codes to determine result)
+
+A call to http://HUB_ADDRESS:HUB_PORT/grid/admin/ForceDeregister?id=NODE-ID will immediately deregister the node with id ``NODE-ID``.
+
+The ID of nodes can be determined either from the stock Grid Console or from the Console servlet. It is generally the URL to reach the node, in the form ``http://hostname_or_ip:PORT``
+
 ## Monitoring
 
 When a node is not started with the default class `DefaultRemoteProxy` but with `-proxy com.xing.qa.selenium.grid.node.MonitoringWebProxy`
@@ -43,7 +62,7 @@ the hub will report metrics on the operating system and node operation to a Infl
 The Configuration of the reporting destination is done by environment variables:
 
 | Variable       | Default         | Description                             |
-| -------------- | --------------- | --------------------------------------- |
+|:---------------|:----------------|:----------------------------------------|
 | `IFXDB_HOST`   | `localhost`     | InfluxDB server hostname                |
 | `IFXDB_PORT`   | `8086`          | InfluxDB server port                    |
 | `IFXDB_DB`     | `selenium-grid` | Name of database for the collected data |
@@ -54,24 +73,24 @@ The Configuration of the reporting destination is done by environment variables:
 
 The MonitoringWebProxy reports the following series and values to InfluxDB:
 
-| Serie                                   | Content                                                            |
-| --------------------------------------- | ------------------------------------------------------------------ |
-| `node.utilization.measure`              | measures the utilization of available selenium sessions            |
-| `node.errors`                           | reports session errors                                             |
-| `session.cap.provided.finish.measure`   | tracking of provided capabilities at end of session                |
-| `session.cap.provided.start.measure`    | tracking of provided capabilities at selenium session start event  |
-| `session.cap.provided.timeout.measure`  | tracking of provided capabilities at session timeout event data    |
-| `session.cap.requested.finish.measure`  | tracking of requested capabilities at end of session               |
+| Serie                                   | Content                            |
+|:----------------------------------------|:-----------------------------------|
+| `node.utilization.measure`              | measures the utilization of available selenium sessions |
+| `node.errors`                           | reports session errors             |
+| `session.cap.provided.finish.measure`   | tracking of provided capabilities at end of session |
+| `session.cap.provided.start.measure`    | tracking of provided capabilities at selenium session start event |
+| `session.cap.provided.timeout.measure`  | tracking of provided capabilities at session timeout event data |
+| `session.cap.requested.finish.measure`  | tracking of requested capabilities at end of session |
 | `session.cap.requested.start.measure`   | tracking of requested capabilities at selenium session start event |
-| `session.cap.requested.timeout.measure` | tracking of requested capabilities at session timeout event data   |
-| `session.cmd.command.measure`           | tracking of sent commands                                          |
-| `session.cmd.result.measure`            | tracking of command results                                        |
-| `session.event.measure`                 | measuring of selenium events (start, finish, timeout)              |
+| `session.cap.requested.timeout.measure` | tracking of requested capabilities at session timeout event data |
+| `session.cmd.command.measure`           | tracking of sent commands          |
+| `session.cmd.result.measure`            | tracking of command results        |
+| `session.event.measure`                 | measuring of selenium events (start, finish, timeout) |
 
 #### Serie node.utilization.measure
 
 | Field        | Type     | Content                               |
-| ------------ | -------- | ------------------------------------- |
+|:-------------|:---------|:--------------------------------------|
 | `host`       | `String` | hostname of remote node               |
 | `used`       | `int`    | number of used slots at sampling time |
 | `total`      | `int`    | number of total available slots       |
@@ -79,16 +98,16 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 
 #### Serie node.errors
 
-| Field     | Type     | Content                     |
-| --------- | -------- | --------------------------- |
-| `host`    | `String` | hostname of remote node     |
-| `error`   | `String` | error class name            |
-| `message` | `String` | error message               |
+| Field     | Type     | Content                 |
+|:----------|:---------|:------------------------|
+| `host`    | `String` | hostname of remote node |
+| `error`   | `String` | error class name        |
+| `message` | `String` | error message           |
 
 #### Serie session.cap.provided.start.measure
 
 | Field        | Type      | Content                                            |
-| ------------ | --------- | -------------------------------------------------- |
+|:-------------|:----------|:---------------------------------------------------|
 | `host`       | `String`  | hostname of remote node                            |
 | `ext_key`    | `String`  | external key of session                            |
 | `int_key`    | `String`  | internal key of sesson                             |
@@ -101,7 +120,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.cap.provided.finish.measure
 
 | Field        | Type      | Content                                            |
-| ------------ | --------- | -------------------------------------------------- |
+|:-------------|:----------|:---------------------------------------------------|
 | `host`       | `String`  | hostname of remote node                            |
 | `ext_key`    | `String`  | external key of session                            |
 | `int_key`    | `String`  | internal key of sesson                             |
@@ -114,7 +133,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.cap.provided.timeout.measure
 
 | Field        | Type      | Content                                            |
-| ------------ | --------- | -------------------------------------------------- |
+|:-------------|:----------|:---------------------------------------------------|
 | `host`       | `String`  | hostname of remote node                            |
 | `ext_key`    | `String`  | external key of session                            |
 | `int_key`    | `String`  | internal key of sesson                             |
@@ -127,7 +146,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.cap.requested.start.measure
 
 | Field        | Type      | Content                                            |
-| ------------ | --------- | -------------------------------------------------- |
+|:-------------|:----------|:---------------------------------------------------|
 | `host`       | `String`  | hostname of remote node                            |
 | `ext_key`    | `String`  | external key of session                            |
 | `int_key`    | `String`  | internal key of sesson                             |
@@ -140,7 +159,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.cap.requested.finish.measure
 
 | Field        | Type      | Content                                            |
-| ------------ | --------- | -------------------------------------------------- |
+|:-------------|:----------|:---------------------------------------------------|
 | `host`       | `String`  | hostname of remote node                            |
 | `ext_key`    | `String`  | external key of session                            |
 | `int_key`    | `String`  | internal key of sesson                             |
@@ -153,7 +172,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.cap.requested.timeout.measure
 
 | Field        | Type      | Content                                            |
-| ------------ | --------- | -------------------------------------------------- |
+|:-------------|:----------|:---------------------------------------------------|
 | `host`       | `String`  | hostname of remote node                            |
 | `ext_key`    | `String`  | external key of session                            |
 | `int_key`    | `String`  | internal key of sesson                             |
@@ -166,7 +185,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.cmd.command.measure
 
 | Field        | Type      | Content                      |
-| ------------ | --------- | ---------------------------- |
+|:-------------|:----------|:-----------------------------|
 | `host`       | `String`  | hostname of remote node      |
 | `ext_key`    | `String`  | external key of session      |
 | `int_key`    | `String`  | internal key of sesson       |
@@ -180,7 +199,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.cmd.result.measure
 
 | Field        | Type      | Content                      |
-| ------------ | --------- | ---------------------------- |
+|:-------------|:----------|:-----------------------------|
 | `host`       | `String`  | hostname of remote node      |
 | `ext_key`    | `String`  | external key of session      |
 | `int_key`    | `String`  | internal key of sesson       |
@@ -194,7 +213,7 @@ The MonitoringWebProxy reports the following series and values to InfluxDB:
 #### Serie session.event.measure
 
 | Field        | Type      | Content                                        |
-| ------------ | --------- | ---------------------------------------------- |
+|:-------------|:----------|:-----------------------------------------------|
 | `host`       | `String`  | hostname of remote node                        |
 | `ext_key`    | `String`  | external key of session                        |
 | `int_key`    | `String`  | internal key of sesson                         |
