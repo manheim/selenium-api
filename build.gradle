@@ -1,6 +1,7 @@
 apply plugin: 'java'
 
-version = '0.8.0.manheim-b84a6ff'
+def gitCommitHash = 'git rev-parse --verify --short HEAD'.execute().text.trim()
+version = '0.8.0.manheim-' + gitCommitHash
 group = 'com.xing.qa'
 
 sourceCompatibility = 1.8
