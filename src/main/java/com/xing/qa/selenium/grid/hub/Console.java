@@ -4,10 +4,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.openqa.grid.internal.GridRegistry;
 import org.openqa.grid.internal.RemoteProxy;
+import org.openqa.grid.internal.TestSession;
+import org.openqa.grid.internal.TestSlot;
 import org.openqa.grid.web.Hub;
 import org.openqa.grid.web.servlet.RegistryBasedServlet;
 import org.openqa.selenium.BuildInfo;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.remote.BrowserType;
+import org.openqa.selenium.remote.CapabilityType;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +20,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +51,8 @@ public class Console extends RegistryBasedServlet {
         try {
             if ("/requests".equals(req.getPathInfo())) {
                 sendJson(pendingRequests(), req, resp);
+            } else if ("/simple".equals(req.getPathInfo())) {
+                sendJson(simpleStatus(), req, resp);
             } else {
                 sendJson(status(), req, resp);
             }
@@ -127,4 +134,63 @@ public class Console extends RegistryBasedServlet {
 
         return status;
     }
+
+    protected JSONObject simpleStatus() throws JSONException {
+        JSONObject status = new JSONObject();
+
+        Hub h = getRegistry().getHub();
+
+        Map<String, JSONObject> nodes = new HashMap<String, JSONObject>();
+        AutoIncrementMap inUse = new AutoIncrementMap();
+        AutoIncrementMap notInUse = new AutoIncrementMap();
+        AutoIncrementMap pending = new AutoIncrementMap();
+
+        for (RemoteProxy proxy : getRegistry().getAllProxies()) {
+            for (TestSlot slot : proxy.getTestSlots()) {
+                String browserName = slot.getCapabilities().get(CapabilityType.BROWSER_NAME).toString().replaceAll("\\s+", "");
+                TestSession session = slot.getSession();
+                if (session != null) {
+                    inUse.increment(browserName);
+                } else {
+                    notInUse.increment(browserName);
+                }
+            }
+        }
+
+        if (getRegistry().getNewSessionRequestCount() > 0) {
+            for (Capabilities c: getRegistry().getDesiredCapabilities()) {
+                pending.increment(c.getBrowserName());
+            }
+        }
+
+        status.put("browsers_in_use", inUse.getAsJsonObject());
+        status.put("browsers_free", notInUse.getAsJsonObject());
+        status.put("pending_requests", pending.getAsJsonObject());
+        return status;
+    }
+}
+
+
+class AutoIncrementMap {
+  private Map<String, Integer> map = new HashMap<String, Integer>();
+
+  public void increment(String k) {
+      if (!map.containsKey(k)) {
+        map.put(k, 1);
+      } else {
+        map.put(k, map.get(k) + 1);
+      }
+  }
+
+  public int get(String k) {
+      return map.containsKey(k) ? map.get(k) : 0;
+  }
+
+  public JSONObject getAsJsonObject() throws JSONException {
+      JSONObject val = new JSONObject();
+      for (String k: map.keySet()) {
+        val.put(k, map.get(k));
+      }
+      return val;
+  }
 }

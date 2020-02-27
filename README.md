@@ -33,6 +33,10 @@ A call to http://localhost:4444/grid/admin/Console will return a full status rep
 
 The call `http://localhost:4444/grid/admin/Console/requests` will just return a list of the pending requests of the connected nodes.
 
+### Simplified Status
+
+The call `http://localhost:4444/grid/admin/Console/simple` will just return a map of pending request count, free browsers count, and in-use browsers count, for each browser name.
+
 ## ForceDeregister
 
 The servlet `com.xing.qa.selenium.grid.hub.ForceDeregister` implements an endpoint to forcibly deregister a given node from the Hub's GridRegistry. This immediately cleans up an test sessions that were using the node and then removes it from the Grid.
